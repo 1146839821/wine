@@ -3353,7 +3353,7 @@ BOOL WINAPI GetComputerNameExW( COMPUTER_NAME_FORMAT type, WCHAR *name, DWORD *l
     case ComputerNameNetBIOS:
     case ComputerNamePhysicalNetBIOS:
         keyname = L"System\\CurrentControlSet\\Control\\ComputerName\\ActiveComputerName";
-        valuename = L"ComputerName";
+        valuename = L"STEAMDECK";
         break;
     case ComputerNameDnsHostname:
     case ComputerNamePhysicalDnsHostname:
@@ -3494,7 +3494,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH SetComputerNameExW( COMPUTER_NAME_FORMAT type, con
         ret = RegCreateKeyExW( HKEY_LOCAL_MACHINE, L"System\\CurrentControlSet\\Control\\ComputerName\\ComputerName",
                                0, NULL, 0, KEY_ALL_ACCESS, NULL, &key, NULL );
         if (ret) break;
-        ret = RegSetValueExW( key, L"ComputerName", 0, REG_SZ,
+        ret = RegSetValueExW( key, L"STEAMDECK", 0, REG_SZ,
                               (BYTE *)buffer, (lstrlenW(buffer) + 1) * sizeof(WCHAR) );
         RegCloseKey( key );
         break;

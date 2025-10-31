@@ -1,0 +1,107 @@
+diff --git a/dlls/kernelbase/registry.c b/dlls/kernelbase/registry.c
+index xxxxxxx..xxxxxxx 100644
+--- a/dlls/kernelbase/registry.c
++++ b/dlls/kernelbase/registry.c
+@@ -xxxx,xxx +xxxx,xxx @@ BOOL WINAPI GetComputerNameExW( COMPUTER_NAME_FORMAT type, WCHAR *name, DWORD *l
+ {
+     const WCHAR *keyname, *valuename;
+     LRESULT ret;
+     HKEY key;
+ 
++    // 添加自定义主机名支持
++    static const WCHAR custom_hostname[] = L"STEAMDECK";
++    static const WCHAR custom_domain[] = L"STEAMDECK";
++    
++    // 如果是查询主机名相关类型，直接返回自定义值
++    switch (type)
++    {
++    case ComputerNameNetBIOS:
++    case ComputerNamePhysicalNetBIOS:
++    case ComputerNameDnsHostname:
++    case ComputerNamePhysicalDnsHostname:
++        {
++            DWORD required_len = lstrlenW(custom_hostname) + 1;
++            
++            if (!name || !len)
++            {
++                SetLastError(ERROR_INVALID_PARAMETER);
++                return FALSE;
++            }
++            
++            if (*len < required_len)
++            {
++                *len = required_len;
++                SetLastError(ERROR_MORE_DATA);
++                return FALSE;
++            }
++            
++            lstrcpyW(name, custom_hostname);
++            *len = required_len - 1; // 不包括 null 终止符
++            TRACE("Returning custom hostname: %s\n", debugstr_w(name));
++            return TRUE;
++        }
++    
++    case ComputerNameDnsDomain:
++    case ComputerNamePhysicalDnsDomain:
++        {
++            DWORD required_len = lstrlenW(custom_domain) + 1;
++            
++            if (!name || !len)
++            {
++                SetLastError(ERROR_INVALID_PARAMETER);
++                return FALSE;
++            }
++            
++            if (*len < required_len)
++            {
++                *len = required_len;
++                SetLastError(ERROR_MORE_DATA);
++                return FALSE;
++            }
++            
++            lstrcpyW(name, custom_domain);
++            *len = required_len - 1;
++            TRACE("Returning custom domain: %s\n", debugstr_w(name));
++            return TRUE;
++        }
++    
++    case ComputerNameDnsFullyQualified:
++    case ComputerNamePhysicalDnsFullyQualified:
++        {
++            WCHAR fqdn[256];
++            DWORD required_len;
++            
++            lstrcpyW(fqdn, custom_hostname);
++            lstrcatW(fqdn, L".");
++            lstrcatW(fqdn, custom_domain);
++            
++            required_len = lstrlenW(fqdn) + 1;
++            
++            if (!name || !len)
++            {
++                SetLastError(ERROR_INVALID_PARAMETER);
++                return FALSE;
++            }
++            
++            if (*len < required_len)
++            {
++                *len = required_len;
++                SetLastError(ERROR_MORE_DATA);
++                return FALSE;
++            }
++            
++            lstrcpyW(name, fqdn);
++            *len = required_len - 1;
++            TRACE("Returning custom FQDN: %s\n", debugstr_w(name));
++            return TRUE;
++        }
++    
++    default:
++        // 对于其他类型，使用原来的注册表查询逻辑
++        break;
++    }
++
++    // 原来的注册表查询代码保持不变
+     switch (type)
+     {
+     case ComputerNameNetBIOS:
